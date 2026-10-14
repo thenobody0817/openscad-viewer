@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Deep purple-blue, matching the top of the icon's gradient. -->
+    <color name="ic_launcher_background">#221A45</color>
+</resources>

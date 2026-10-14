@@ -1,0 +1,31 @@
+A native Android viewer and editor for OpenSCAD files.
+
+I wanted a way to look at a .scad model on my phone, tweak a dimension, and see
+what changed — without a laptop, a cloud account, or a subscription. I could not
+find an app that did that, so I built one.
+
+WHAT IT DOES
+
+• Renders .scad models in a 3D viewport you can orbit, pinch to zoom, and pan.
+• Generates parameter sliders straight from the variables in your model, and
+  re-evaluates the geometry live as you drag them.
+• Syntax-highlighted code editor beside the viewport.
+• Opens .scad files from any file manager, or accepts them via the share sheet.
+• Exports the current mesh as STL.
+• Material 3 interface, light and dark.
+
+THE ENGINE
+
+The SCAD implementation is written from scratch in Kotlin — lexer, parser, AST,
+evaluator, CSG kernel and a 2D geometry layer, with 49 unit tests. There is no
+OpenSCAD binary, no JNI and no native code in the app, which keeps it small and
+architecture-independent.
+
+Covered: all primitives including polyhedron, surface and projection; the full
+CSG set including hull and minkowski; every transform; offset, linear_extrude and
+rotate_extrude; modules, functions, for/if/let; and the standard builtin library.
+
+LICENSE
+
+GPL-3.0-only. The source is public and the release signing key is committed to
+the repository, so anyone can rebuild, re-sign and install their own build.

@@ -1,0 +1,12 @@
+First release. Alpha software — expect rough edges.
+
+• Pure-Kotlin SCAD engine: lexer, parser, evaluator, CSG and 2D geometry, with
+  49 unit tests. No JNI, no native code.
+• Orbit/zoom/pan viewport with distance-based auto-framing.
+• Parameter sliders generated from model variables, re-evaluating live.
+• Syntax-highlighted editor, console panel.
+• Opens .scad via file manager or share sheet. Exports STL.
+• Light and dark Material 3.
+
+Gaps: STL only, flat shading, no write-back, slow on large models. Tested on
+x86_64; arm64 not yet verified on hardware.
