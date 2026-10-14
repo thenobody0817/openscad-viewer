@@ -1,147 +1,128 @@
-# OpenSCAD Viewer - Development Notes
+# Development notes
 
-## Current Status
+## Current state
 
-This is a **foundation/skeleton** project. The key infrastructure is in place but the OpenSCAD C++ library integration needs to be completed.
+The engine works and the app renders. What follows is what is actually true as
+of `0.1.0-alpha01`, and what is genuinely still missing.
 
-### What's Working
-- ✅ Android project structure with Gradle, Hilt, Room, Compose
-- ✅ JNI bridge framework (Java/Kotlin + C++)
-- ✅ Filament rendering integration
-- ✅ UI screens: Editor, Viewer, Parameters
-- ✅ ViewModels with state management
-- ✅ Database schema for files/preferences
-- ✅ Dependency build script for native libraries
+### Working
 
-### What Needs Implementation
+- **SCAD engine (`scad-core`)** — lexer, parser, AST, evaluator, CSG kernel, 2D
+  layer, Customizer parser. 49 unit tests covering all of these.
+- **Rendering** — triangles are drawn as filled Compose `Canvas` paths with a
+  two-sided Lambert term and an optional edge overlay. Orbit/zoom via pointer
+  and pinch input. The camera auto-frames using the mesh's bounding sphere.
+- **UI** — Material 3, light/dark, three tabs (viewport / parameters / code /
+  console), generated parameter sliders, syntax highlighting.
+- **File intake** — `ACTION_VIEW` and `ACTION_SEND` intent filters, handled in
+  `MainActivity.handleIncoming`.
+- **STL export**.
 
-#### 1. OpenSCAD C++ Library Build (Critical)
-The `build-openscad-deps.sh` script builds dependencies but you still need to:
-- Build OpenSCAD itself for Android (disable GUI, enable library)
-- Link against the prebuilt dependencies
-- Produce `libopenscad.so` for each architecture
+### Not working / not done
 
-#### 2. JNI Bridge Implementation (Critical)
-In `app/src/main/cpp/jni_bridge.cpp`:
-- Replace stub `OpenSCADWrapper` with real OpenSCAD API calls
-- Implement `parseAndEvaluate()` using OpenSCAD's `Parser`, `Evaluator`, `CSG` classes
-- Implement `extractVariables()` by walking the AST
-- Implement `exportSTL()/exportOBJ()` using OpenSCAD's exporters
+- Export formats other than STL (OBJ, glTF, 3MF).
+- Smooth normals, PBR materials, shadows, environment lighting.
+- Grid / axes / wireframe overlays.
+- Saving back to storage.
+- No differential testing against the reference OpenSCAD implementation — the
+  parsers are unit-tested but have not been fuzzed against real `.scad` corpora.
 
-#### 3. Filament Rendering (Partial)
-- Basic mesh rendering works
-- Need: Grid, axes, selection highlighting, wireframe mode
-- Need: Proper lighting setup (HDRI environment maps)
-- Need: Touch gesture handling refinement
+## Things that were tried and abandoned
 
-#### 4. Code Editor (Basic)
-- Current: Basic `BasicTextField`
-- Need: Syntax highlighting (consider `compose-highlight` or custom)
-- Need: Line numbers, error markers, autocomplete
+Do not spend time resurrecting these. They are recorded so nobody re-derives
+them.
 
-#### 5. Export Functionality
-- STL/OBJ export from Filament mesh data
-- glTF export using `gltfio`
+**JNI bridge to OpenSCAD's C++ core.** The original plan was to link
+`libopenscad` and call its real parser/evaluator via JNI, with Google Filament
+rendering the result. This was abandoned in favour of a pure-Kotlin engine. It
+would have required building OpenSCAD's C++ plus CGAL, OpenCSG, GMP, MPFR and
+Boost for two Android ABIs — a long, fragile native build for something the app
+now does in Kotlin. It also would have forced the whole project under GPLv2
+copyleft from OpenSCAD's licence, which is incompatible with the GPLv3 the
+project is released under.
 
-## Next Steps
+The dead `app/src/main/cpp/` stubs were removed in commit history; recover them
+with `git checkout caf8f51 -- app/src/main/cpp` if you want to see what they
+looked like.
 
-### Week 1: OpenSCAD Library
-1. Run `build-openscad-deps.sh` (takes 30-60 min)
-2. Build OpenSCAD for Android (modify CMakeLists to use prebuilt deps)
-3. Copy `.so` files to `app/src/main/jnilibs/`
+**Google Filament.** A PBR renderer would outclass path rasterisation for heavy
+models. It was never integrated — the current renderer draws with `Canvas`
+directly and has no native dependencies at all.
 
-### Week 2: JNI Integration
-1. Study OpenSCAD's `src/` - key files: `parser/parser.cc`, `evaluator/evaluator.cc`, `geometry/csg.cc`
-2. Implement `OpenSCADWrapper::parseAndEvaluate()` using OpenSCAD API
-3. Implement variable extraction from AST
-4. Test with simple .scad files
+## Architecture notes
 
-### Week 3: Polish Rendering
-1. Add environment map lighting
-2. Implement grid/axes overlay
-3. Add model selection/highlighting
-4. Optimize render loop
+### Engine (`scad-core/`)
 
-### Week 4: Editor & Export
-1. Add syntax highlighting
-2. Implement STL/OBJ export
-3. Add file management (open/save/recent)
-4. Settings screen
+A standalone Kotlin/JVM Gradle build, consumed by the app through a composite
+build (`includeBuild("scad-core")` in `settings.gradle.kts`) which substitutes
+the `com.openscad:scad-core` coordinate automatically.
 
-## OpenSCAD C++ API Notes
+Pipeline:
 
-Key classes to use:
-```cpp
-// Parsing
-openscad::Parser parser;
-openscad::AST::Node* ast = parser.parse(scad_code);
-
-// Evaluation
-openscad::Evaluator evaluator;
-openscad::CSG* csg = evaluator.eval(ast);
-
-// Variable extraction
-// Walk AST looking for VariableAssignment nodes
-
-// Mesh generation
-openscad::Geometry geometry;
-csg->render(geometry);
-// Extract triangles from geometry
-
-// Export
-openscad::exportSTL(geometry, filepath);
+```
+source text → ScadLexer → Token[] → ScadParser → ScadAst
+           → ScadEvaluator → ScadValue/Solid
+           → ScadCsg → ScadGeometry → triangles
 ```
 
-## Filament Notes
+- `Scad2D` handles 2D primitives and polygon offset/hull/triangulation.
+- `ScadCustomizer` extracts variables and `// [n:min:step]` annotations for the
+  parameter sliders.
+- **JTS** (LocationTech) provides robust polygon overlay, buffering, convex hull
+  and triangulation. It is dual-licensed EPL-2.0 / EDL-1.0 and is consumed under
+  EDL-1.0, which is compatible with GPLv3.
 
-Key patterns:
-```cpp
-// Create material
-Material* mat = Material::Builder()
-    .packageName("com.google.android.filament")
-    .name("lit")
-    .build(engine);
+### Rendering (`app/`)
 
-// Create mesh
-VertexBuffer* vb = VertexBuffer::Builder()
-    .vertexCount(count)
-    .attribute(POSITION, 0, FLOAT3, 0, stride)
-    .attribute(NORMAL, 0, FLOAT3, 12, stride)
-    .attribute(UV0, 0, FLOAT2, 24, stride)
-    .build(engine);
+`RenderMesh` triangulates a `Solid` and computes bounds, centre and radius;
+`radius` is the half-diagonal of the axis-aligned bounding box, a conservative
+bounding sphere. `MeshViewport` scales by `0.40 / radius`, so a model is framed
+from the viewport's smaller dimension. If the camera ever looks wrong, that
+constant is the first thing to check.
 
-// Render loop
-engine->beginFrame(swapChain);
-engine->render(view);
-engine->endFrame();
-```
+### Build
+
+Gradle 9.7.1, AGP 9.4.1 with built-in Kotlin support (do not apply
+`kotlin.android` — AGP 9 supplies it). `compileSdk` 36, `targetSdk` 37,
+`minSdk` 29.
+
+The `kotlin` plugin version in `gradle/libs.versions.toml` and the one used by
+`scad-core` are currently mismatched (2.2.10 vs 2.2.20). This works because the
+composite build publishes across a module boundary, but it is worth aligning —
+see below.
+
+## Known rough edges worth fixing
+
+1. **Align the Kotlin versions** between `app` and `scad-core`. A consumer whose
+   Kotlin compiler is older than the metadata version of a dependency will fail
+   to read it; this currently only works because the versions are close.
+2. **`build-openscad-deps.sh` is dead** — it built native dependencies for the
+   abandoned JNI approach. Remove it (done) or delete it outright.
+3. **No arm64 device testing.** Everything has only been exercised on x86_64
+   under Waydroid. There is no native code, so it *should* be architecture
+   independent, but that is an argument rather than evidence.
 
 ## Testing
 
 ```bash
-# Unit tests
-./gradlew test
+# engine unit tests (49)
+cd scad-core && ../gradlew test
 
-# Instrumented tests (requires device)
-./gradlew connectedAndroidTest
+# app build
+./gradlew assembleDebug
 
-# Lint
+# lint
 ./gradlew lint
 ```
 
-## Troubleshooting
+There are no instrumented tests. The UI layer is untested.
 
-### JNI UnsatisfiedLinkError
-- Check `jnilibs/<arch>/` has all required `.so` files
-- Verify `System.loadLibrary("openscad_jni")` matches `libopenscad_jni.so`
-- Check logcat for missing dependencies
+## If you want to contribute
 
-### Filament Crashes
-- Ensure `Filament.init()` called before any Filament code
-- Check OpenGL ES version (requires 3.2+)
-- Verify swap chain creation matches surface size
+The highest-value work, in order:
 
-### Build Errors
-- Clean: `./gradlew clean`
-- Delete `.gradle`, `build` directories
-- Invalidate caches in Android Studio
+1. Differential-test the parser against real `.scad` files and report
+   divergences. The engine's correctness is the whole product.
+2. Smooth normals and a real lighting model.
+3. OBJ export.
+4. Save/write-back.
