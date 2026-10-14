@@ -52,5 +52,10 @@ build_deps/
 install_deps/
 
 # Signing
+# NOTE: keystore/openscad-viewer.p12 is deliberately TRACKED in this repository.
+# It is the published release key for reproducible builds -- see README
+# "Signing". Do not add a blanket rule that would exclude it, and do not move
+# its passwords out of app/build.gradle.kts: the F-Droid build server needs to
+# reproduce a byte-identical signed APK with no local state.
 signing.properties
 keystore.properties

@@ -21,12 +21,33 @@ android {
         }
     }
 
+    // The signing key is committed to this repository on purpose. Anyone may
+    // rebuild, re-sign and sideload the app, which is what makes the GPL real
+    // rather than decorative on Android (see README "Signing").
+    //
+    // The passwords below are therefore NOT secrets -- they are obfuscation for
+    // a key that is public by design. Do not "fix" these by moving them into
+    // environment variables or local properties: the F-Droid build server
+    // clones this repo with no local state and must be able to produce a
+    // byte-identical signed APK for reproducible-build verification.
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("keystore/openscad-viewer.p12")
+            storePassword = "openscad-viewer"
+            keyAlias = "openscad-viewer"
+            keyPassword = "openscad-viewer"
+        }
+    }
+
     buildTypes {
         debug {
             isMinifyEnabled = false
         }
         release {
+            // Left off deliberately. R8 buys size but adds a large surface for
+            // reproducibility drift, and an alpha is not the moment for that.
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
