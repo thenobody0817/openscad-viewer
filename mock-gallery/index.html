@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenSCAD Viewer — UI Mock Gallery</title>
+<style>
+  :root{
+    --bg:#0e0e12; --panel:#16161c; --panel2:#1d1d25; --line:#2a2a35;
+    --txt:#e7e3ec; --muted:#9d97a8; --dim:#6f6a7c;
+    --accent:#d0bcff; --accent-dim:#4f378b; --ok:#a6e3a1; --warn:#f9e2af; --err:#f38ba8;
+    --mono: ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+    --sans: "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);}
+  body{padding:0 0 120px}
+  a{color:var(--accent)}
+
+  header.top{
+    position:sticky;top:0;z-index:50;background:rgba(14,14,18,.86);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);padding:14px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap
+  }
+  header.top h1{font-size:16px;margin:0;font-weight:650;letter-spacing:.2px}
+  header.top .sub{color:var(--muted);font-size:12.5px}
+  .spacer{flex:1}
+  .btn{
+    background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:10px;
+    padding:8px 14px;font-size:13px;cursor:pointer;font-family:var(--sans);text-decoration:none
+  }
+  .btn:hover{border-color:var(--accent-dim);background:#232330}
+  .btn.primary{background:var(--accent-dim);border-color:#6d54b8;color:#fff}
+
+  main{max-width:1560px;margin:0 auto;padding:32px 22px}
+  section{margin:0 0 56px}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 6px}
+  .sec-head h2{font-size:22px;margin:0;font-weight:650}
+  .sec-head .tag{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:3px 10px;text-transform:uppercase;letter-spacing:.8px}
+  .lede{color:var(--muted);font-size:14px;margin:6px 0 26px;max-width:900px;line-height:1.55}
+  .lede b{color:var(--txt);font-weight:600}
+  code.k{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:#e0d7ff}
+
+  .row{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+  .col{display:flex;flex-direction:column;gap:12px}
+
+  .phone{
+    width:308px;background:#050507;border-radius:38px;padding:11px;
+    box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 0 1px #2a2a35 inset;position:relative;flex:0 0 auto
+  }
+  .phone .notch{position:absolute;top:16px;left:50%;transform:translateX(-50%);width:86px;height:20px;background:#050507;border-radius:99px;z-index:6}
+  .screen{
+    width:100%;height:672px;border-radius:28px;overflow:hidden;position:relative;display:flex;flex-direction:column;
+    background:var(--s-surface);color:var(--s-on)
+  }
+  .tablet{width:640px;height:440px;background:#050507;border-radius:26px;padding:12px;box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 0 1px #2a2a35 inset}
+  .tablet .screen{height:100%;border-radius:16px}
+
+  .caption{margin-top:12px;font-size:13px;color:var(--muted);max-width:308px;line-height:1.5}
+  .caption b{color:var(--txt);display:block;font-size:14px;margin-bottom:3px}
+  .tablet-cap{max-width:640px}
+
+  .m-dark{
+    --s-surface:#141218; --s-on:#e6e1e5; --s-var:#cac4d0; --s-c-low:#1d1b20; --s-c:#211f26;
+    --s-c-high:#2b2930; --s-c-highest:#36343b; --s-outline:#49454f; --s-outline2:#938f99;
+    --s-primary:#d0bcff; --s-pri-c:#4f378b; --s-on-pri-c:#eaddff; --s-sec-c:#4a4458; --s-err:#f2b8b5; --s-err-c:#8c1d18;
+  }
+  .m-light{
+    --s-surface:#fef7ff; --s-on:#1d1b20; --s-var:#49454f; --s-c-low:#f7f2fa; --s-c:#f3edf7;
+    --s-c-high:#ece6f0; --s-c-highest:#e6e0e9; --s-outline:#cac4d0; --s-outline2:#79747e;
+    --s-primary:#6750a4; --s-pri-c:#eaddff; --s-on-pri-c:#21005d; --s-sec-c:#e8def8; --s-err:#b3261e; --s-err-c:#f9dedc;
+  }
+
+  .statusbar{height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:10.5px;color:var(--s-var);flex:0 0 auto}
+  .appbar{height:52px;display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--s-c);color:var(--s-on);flex:0 0 auto;border-bottom:1px solid color-mix(in srgb,var(--s-outline) 40%,transparent)}
+  .appbar .title{font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .appbar .title small{display:block;font-size:10px;color:var(--s-var);font-weight:400}
+  .iconbtn{width:34px;height:34px;border-radius:999px;display:grid;place-items:center;flex:0 0 auto}
+  .iconbtn.hov:hover{background:color-mix(in srgb,var(--s-on) 10%,transparent);cursor:pointer}
+  .pill{border:1px solid var(--s-outline2);border-radius:999px;padding:5px 12px;font-size:11.5px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .pill.filled{background:var(--s-pri-c);border-color:transparent;color:var(--s-on-pri-c)}
+  .pill.tonal{background:var(--s-sec-c);border-color:transparent;color:var(--s-on)}
+  .bottomnav{height:62px;display:flex;background:var(--s-c-high);flex:0 0 auto}
+  .bottomnav .item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10.5px;color:var(--s-var)}
+  .bottomnav .item.active{color:var(--s-on)}
+  .bottomnav .item .ico{font-size:17px;line-height:1}
+  .body{flex:1;min-height:0;overflow:hidden;position:relative}
+
+  .viewport{position:absolute;inset:0;background:
+    radial-gradient(120% 90% at 50% 12%, #2a2b34 0%, #1a1a20 46%, #101014 100%);
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .viewport .grid{position:absolute;inset:0;background-image:
+    linear-gradient(color-mix(in srgb,#7f8cff 22%,transparent) 1px,transparent 1px),
+    linear-gradient(90deg,color-mix(in srgb,#7f8cff 22%,transparent) 1px,transparent 1px);
+    background-size:26px 26px;mask-image:linear-gradient(to top,transparent 0%,#000 60%);opacity:.5;
+    transform:perspective(340px) rotateX(62deg) scale(1.6);transform-origin:50% 100%}
+  .hud{position:absolute;left:10px;right:10px;bottom:10px;background:color-mix(in srgb,var(--s-c-high) 88%,transparent);
+    backdrop-filter:blur(8px);border-radius:14px;padding:9px 11px;display:flex;gap:10px;flex-wrap:wrap;
+    font-family:var(--mono);font-size:10px;color:var(--s-var);align-items:center;border:1px solid color-mix(in srgb,var(--s-outline) 50%,transparent)}
+  .hud .kv b{color:var(--s-on);font-weight:600}
+  .hud .dot{width:6px;height:6px;border-radius:99px;background:var(--ok);display:inline-block;margin-right:5px}
+  .vpresets{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:8px}
+  .fabcol{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:8px}
+  .mini{width:38px;height:38px;border-radius:12px;background:color-mix(in srgb,var(--s-c-high) 90%,transparent);
+    border:1px solid color-mix(in srgb,var(--s-outline) 55%,transparent);display:grid;place-items:center;font-size:15px}
+
+  .code{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--s-surface)}
+  .code .scroll{flex:1;min-height:0;overflow:auto;font-family:var(--mono);font-size:11px;line-height:1.65;padding:12px 0}
+  .ln{display:flex;white-space:pre}
+  .gutter{width:38px;flex:0 0 auto;text-align:right;padding-right:10px;color:var(--dim);user-select:none}
+  .src{padding-right:14px;color:#cfcad8}
+  .ln.mark{background:color-mix(in srgb,var(--s-err) 10%,transparent)}
+  .ln.mark .gutter{color:var(--s-err)}
+  .k-c{color:#6a9955}
+  .k-meta{color:#7c9cff}
+  .k-kw{color:#c586c0}
+  .k-bl{color:#569cd6}
+  .k-fn{color:#dcdcaa}
+  .k-num{color:#b5cea8}
+  .k-str{color:#ce9178}
+  .k-op{color:#d4d4d4}
+  .console{flex:0 0 auto;height:118px;background:var(--s-c-low);border-top:1px solid var(--s-outline);font-family:var(--mono);font-size:10.5px;overflow:auto}
+  .console .cl{padding:4px 12px;display:flex;gap:8px;border-bottom:1px solid color-mix(in srgb,var(--s-outline) 25%,transparent)}
+  .console .lvl{flex:0 0 auto}
+  .lvl.i{color:#89b4fa} .lvl.w{color:#f9e2af} .lvl.e{color:#f38ba8} .lvl.ok{color:#a6e3a1}
+
+  .cust{position:absolute;inset:0;overflow:auto;padding:12px 12px 20px}
+  .group{margin-bottom:16px}
+  .group h3{font-size:12px;color:var(--s-primary);margin:0 0 8px;letter-spacing:.4px;text-transform:uppercase;font-weight:650}
+  .card{background:var(--s-c-low);border:1px solid color-mix(in srgb,var(--s-outline) 40%,transparent);border-radius:14px;padding:12px;margin-bottom:10px}
+  .plabel{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+  .plabel .nm{font-size:12.5px;font-weight:550}
+  .plabel .vl{font-family:var(--mono);font-size:12px;color:var(--s-primary)}
+  .track{height:5px;border-radius:99px;background:var(--s-c-highest);position:relative}
+  .track .fill{position:absolute;inset:0 40% 0 0;background:var(--s-primary);border-radius:99px}
+  .track .knob{position:absolute;top:50%;left:60%;width:16px;height:16px;border-radius:99px;background:var(--s-primary);transform:translate(-50%,-50%);box-shadow:0 0 0 5px color-mix(in srgb,var(--s-primary) 22%,transparent)}
+  .select{background:var(--s-c-high);border:1px solid var(--s-outline2);border-radius:9px;padding:8px 11px;font-size:12px;display:flex;justify-content:space-between;align-items:center}
+  .swrow{display:flex;justify-content:space-between;align-items:center}
+  .sw{width:44px;height:24px;border-radius:99px;background:var(--s-primary);position:relative;flex:0 0 auto}
+  .sw::after{content:"";position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:99px;background:#fff}
+  .sw.off{background:var(--s-c-highest)} .sw.off::after{right:auto;left:3px;background:var(--s-outline2)}
+
+  .list{position:absolute;inset:0;overflow:auto;padding:10px 12px}
+  .litem{display:flex;gap:12px;align-items:center;padding:11px 8px;border-bottom:1px solid color-mix(in srgb,var(--s-outline) 30%,transparent)}
+  .litem .thumb{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#3a3a48,#22222c);display:grid;place-items:center;flex:0 0 auto}
+  .litem .nm{font-size:13px;font-weight:550} .litem .sub{font-size:10.5px;color:var(--s-var)}
+
+  .choices{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+  .optwrap{position:relative}
+  .optwrap input{position:absolute;opacity:0;pointer-events:none}
+  .optwrap .frame-target{transition:.18s;border-radius:40px}
+  .optwrap input:checked + .frame-target{box-shadow:0 0 0 3px var(--accent),0 26px 60px rgba(0,0,0,.6)}
+  .optwrap input:checked + .frame-target .pickbadge{opacity:1;transform:translateY(0)}
+  .optwrap label{cursor:pointer;display:block}
+  .pickbadge{position:absolute;top:-14px;left:14px;background:var(--accent);color:#241a3d;font-size:11px;font-weight:700;border-radius:999px;padding:5px 12px;opacity:0;transform:translateY(6px);transition:.18s;z-index:10}
+  .opt-title{display:flex;align-items:center;gap:8px;margin:16px 0 2px;font-size:14.5px;font-weight:650}
+  .opt-title .tag{font-size:10.5px;color:var(--accent);border:1px solid var(--accent-dim);border-radius:999px;padding:2px 8px;font-weight:600;letter-spacing:.5px}
+  .pros{font-size:12.5px;color:var(--muted);line-height:1.55;max-width:314px;margin:4px 0 0;padding-left:16px}
+  .pros li{margin:2px 0}
+  .pros .bad{color:var(--err)} .pros .good{color:var(--ok)}
+
+  .trustbar{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--dim);margin-top:14px}
+
+  #rail{position:fixed;right:16px;bottom:16px;z-index:80;width:300px;background:rgba(22,22,28,.94);backdrop-filter:blur(14px);
+    border:1px solid var(--line);border-radius:16px;padding:14px 15px;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+  #rail h4{margin:0 0 10px;font-size:13px;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+  #rail .dotr{width:7px;height:7px;border-radius:99px;background:var(--accent)}
+  #rail .kv{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:5px 0;border-top:1px dashed var(--line)}
+  #rail .kv span:first-child{color:var(--muted)}
+  #rail .kv span:last-child{color:var(--txt);font-weight:600;text-align:right;max-width:170px}
+  #rail .actions{display:flex;gap:8px;margin-top:12px}
+  #rail .actions .btn{flex:1;text-align:center;padding:8px 6px;font-size:12px}
+  #rail.min{width:auto} #rail.min .railbody{display:none}
+
+  .note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:12px;padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.6;max-width:1000px}
+  .note b{color:var(--txt)} .note code{font-family:var(--mono);font-size:12px;color:#e0d7ff}
+  .badge-line{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>OpenSCAD&nbsp;Viewer — UI Mock Gallery</h1>
+  <span class="sub">Click the options you want · the summary (bottom-right) records your picks</span>
+  <span class="spacer"></span>
+  <a class="btn" href="#ia">IA</a>
+  <a class="btn" href="#screens">Screens</a>
+  <a class="btn" href="#theme">Theme</a>
+  <a class="btn" href="#editor">Editor</a>
+  <a class="btn" href="#native">Native</a>
+  <a class="btn" href="#scope">Scope</a>
+</header>
+
+<main>
+
+  <section id="ia">
+    <div class="sec-head"><h2>1 · Information architecture</h2><span class="tag">pick one</span></div>
+    <p class="lede">
+      Three ways to structure a phone. The model is <b>always rendered somewhere</b>; the question is whether the
+      editor/customizer steal the screen or share it. All three reuse the <b>same screens</b> below — only the shell differs.
+    </p>
+
+    <div class="choices">
+
+      <div class="optwrap">
+        <input type="radio" name="ia" id="ia-a" value="A · Bottom-nav destinations">
+        <label for="ia-a" class="frame-target">
+          <div class="pickbadge">SELECTED</div>
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen m-dark">
+              <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+              <div class="appbar">
+                <span class="iconbtn">☰</span>
+                <div class="title">parametric_box.scad<small>edited 2m ago</small></div>
+                <span class="spacer"></span>
+                <span class="pill filled">▶ Render</span>
+              </div>
+              <div class="body">
+                <div class="viewport">
+                  <div class="grid"></div>
+                  <svg viewBox="0 0 300 300" width="230" height="230"><g opacity=".28"><ellipse cx="150" cy="242" rx="86" ry="20" fill="#000"/></g>
+                    <polygon points="150,74 232,114 150,154 68,114" fill="#f6d94a" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+                    <polygon points="232,114 232,196 150,236 150,154" fill="#c9a417" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+                    <polygon points="68,114 150,154 150,236 68,196" fill="#d9b81f" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+                    <polygon points="150,120 196,143 150,166 104,143" fill="#5c4a0d" stroke="#3a2f06" stroke-width="1"/>
+                  </svg>
+                  <div class="vpresets"><div class="mini">⊤</div><div class="mini">◲</div><div class="mini">⤢</div></div>
+                  <div class="fabcol"><div class="mini">⛶</div><div class="mini">▦</div><div class="mini">◐</div></div>
+                  <div class="hud">
+                    <span class="kv"><span class="dot"></span><b>Ready</b></span>
+                    <span class="kv">tris <b>1 248</b></span>
+                    <span class="kv">verts <b>626</b></span>
+                    <span class="kv">bbox <b>50×30×20</b>mm</span>
+                    <span class="kv">OpenCSG <b>42ms</b></span>
+                  </div>
+                </div>
+              </div>
+              <div class="bottomnav">
+                <div class="item active"><span class="ico">◈</span>View</div>
+                <div class="item"><span class="ico">✎</span>Code</div>
+                <div class="item"><span class="ico">⚙</span>Customize</div>
+              </div>
+            </div>
+          </div>
+          <div class="opt-title">Option A — Bottom-nav destinations <span class="tag">familiar</span></div>
+          <ul class="pros">
+            <li class="good">Simplest to build & test; thumb-reachable; clear mental model.</li>
+            <li class="good">Each destination gets full screen — editor has max room.</li>
+            <li class="bad">Model hidden while editing (breaks the edit→look→edit loop).</li>
+          </ul>
+        </label>
+      </div>
+
+      <div class="optwrap">
+        <input type="radio" name="ia" id="ia-b" value="B · Viewer-first + draggable sheet">
+        <label for="ia-b" class="frame-target">
+          <div class="pickbadge">SELECTED</div>
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen m-dark">
+              <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+              <div class="appbar">
+                <span class="iconbtn">☰</span>
+                <div class="title">parametric_box.scad<small>edited 2m ago</small></div>
+                <span class="spacer"></span>
+                <span class="pill filled">▶ Render</span>
+              </div>
+              <div class="body">
+                <div class="viewport">
+                  <div class="grid"></div>
+                  <svg viewBox="0 0 300 300" width="215" height="215" style="margin-top:-70px"><g opacity=".28"><ellipse cx="150" cy="242" rx="86" ry="20" fill="#000"/></g>
+                    <polygon points="150,74 232,114 150,154 68,114" fill="#f6d94a" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+                    <polygon points="232,114 232,196 150,236 150,154" fill="#c9a417" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+                    <polygon points="68,114 150,154 150,236 68,196" fill="#d9b81f" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+                  </svg>
+                  <div class="fabcol"><div class="mini">⛶</div><div class="mini">▦</div><div class="mini">◐</div></div>
+                </div>
+                <div style="position:absolute;left:0;right:0;bottom:0;height:238px;background:var(--s-c);border-radius:20px 20px 0 0;border-top:1px solid var(--s-outline);box-shadow:0 -14px 40px rgba(0,0,0,.45)">
+                  <div style="width:34px;height:4px;border-radius:99px;background:var(--s-outline2);margin:9px auto 6px"></div>
+                  <div style="display:flex;gap:8px;padding:0 12px 8px">
+                    <span class="pill tonal">Parameters</span><span class="pill">Code</span><span class="pill">Console</span>
+                  </div>
+                  <div class="cust" style="position:static;padding:4px 12px">
+                    <div class="card">
+                      <div class="plabel"><span class="nm">box width</span><span class="vl">50</span></div>
+                      <div class="track"><div class="fill" style="inset:0 50% 0 0"></div><div class="knob" style="left:50%"></div></div>
+                    </div>
+                    <div class="card">
+                      <div class="plabel"><span class="nm">box height</span><span class="vl">20</span></div>
+                      <div class="track"><div class="fill" style="inset:0 70% 0 0"></div><div class="knob" style="left:30%"></div></div>
+                    </div>
+                    <div class="card"><div class="swrow"><span class="nm" style="font-size:12.5px">show lid</span><div class="sw"></div></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="opt-title">Option B — Viewer-first + draggable sheet <span class="tag">3D-first</span></div>
+          <ul class="pros">
+            <li class="good">Model stays visible while tuning params — best feedback loop.</li>
+            <li class="good">Sheet detents: peek / half / full; one surface for Code·Params·Console.</li>
+            <li class="bad">Sheet + code editor + keyboard is fiddly (IME insets).</li>
+          </ul>
+        </label>
+      </div>
+
+      <div class="optwrap">
+        <input type="radio" name="ia" id="ia-c" value="C · Adaptive split (tablet/landscape)">
+        <label for="ia-c" class="frame-target">
+          <div class="pickbadge">SELECTED</div>
+          <div class="tablet">
+            <div class="screen m-dark">
+              <div class="appbar">
+                <span class="iconbtn">☰</span>
+                <div class="title">parametric_box.scad<small>OpenCSG · 42ms</small></div>
+                <span class="spacer"></span>
+                <span class="pill">Preview</span><span class="pill filled">▶ Render</span>
+              </div>
+              <div class="body" style="display:flex">
+                <div style="flex:1.25;position:relative;border-right:1px solid var(--s-outline)">
+                  <div class="viewport">
+                    <div class="grid"></div>
+                    <svg viewBox="0 0 300 300" width="240" height="240"><g opacity=".28"><ellipse cx="150" cy="242" rx="86" ry="20" fill="#000"/></g>
+                      <polygon points="150,74 232,114 150,154 68,114" fill="#f6d94a" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+                      <polygon points="232,114 232,196 150,236 150,154" fill="#c9a417" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+                      <polygon points="68,114 150,154 150,236 68,196" fill="#d9b81f" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+                      <polygon points="150,120 196,143 150,166 104,143" fill="#5c4a0d" stroke="#3a2f06" stroke-width="1"/>
+                    </svg>
+                    <div class="hud" style="font-size:9.5px"><span class="kv"><span class="dot"></span><b>Ready</b></span><span class="kv">tris <b>1 248</b></span><span class="kv">bbox <b>50×30×20</b></span></div>
+                  </div>
+                </div>
+                <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+                  <div style="display:flex;gap:8px;padding:10px 12px 4px">
+                    <span class="pill tonal">Code</span><span class="pill">Parameters</span><span class="pill">Console</span>
+                  </div>
+                  <div class="code" style="position:static;flex:1">
+                    <div class="scroll" style="padding:6px 0">
+                      <div class="ln"><span class="gutter">1</span><span class="src"><span class="k-c">// Parametric box</span></span></div>
+                      <div class="ln"><span class="gutter">2</span><span class="src"><span class="k-meta">/* [Box dimensions] */</span></span></div>
+                      <div class="ln"><span class="gutter">3</span><span class="src">box_width  <span class="k-op">=</span> <span class="k-num">50</span><span class="k-op">;</span>  <span class="k-c">// [10:5:200]</span></span></div>
+                      <div class="ln"><span class="gutter">4</span><span class="src">box_depth  <span class="k-op">=</span> <span class="k-num">30</span><span class="k-op">;</span>  <span class="k-c">// [10:5:200]</span></span></div>
+                      <div class="ln"><span class="gutter">5</span><span class="src">box_height <span class="k-op">=</span> <span class="k-num">20</span><span class="k-op">;</span>  <span class="k-c">// [5:5:100]</span></span></div>
+                      <div class="ln"><span class="gutter">6</span><span class="src"><span class="k-meta">/* [Lid] */</span></span></div>
+                      <div class="ln"><span class="gutter">7</span><span class="src">lid_style <span class="k-op">=</span> <span class="k-str">"snap"</span><span class="k-op">;</span> <span class="k-c">// [snap, screw, hinge]</span></span></div>
+                      <div class="ln"><span class="gutter">8</span><span class="src">show_lid <span class="k-op">=</span> <span class="k-kw">true</span><span class="k-op">;</span></span></div>
+                      <div class="ln"><span class="gutter">9</span><span class="src"></span></div>
+                      <div class="ln"><span class="gutter">10</span><span class="src"><span class="k-kw">module</span> <span class="k-fn">box</span>(w, d, h) {</span></div>
+                      <div class="ln"><span class="gutter">11</span><span class="src">    <span class="k-bl">difference</span>() {</span></div>
+                      <div class="ln"><span class="gutter">12</span><span class="src">        <span class="k-bl">cube</span>([w, d, h], center <span class="k-op">=</span> <span class="k-kw">true</span>);</span></div>
+                    </div>
+                    <div class="console" style="height:74px">
+                      <div class="cl"><span class="lvl i">i</span><span>Compiling design (CSG Tree generation)...</span></div>
+                      <div class="cl"><span class="lvl ok">✔</span><span>Render finished. 1 248 triangles · 42 ms</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="opt-title tablet-cap">Option C — Adaptive split <span class="tag">tablet + landscape</span></div>
+          <ul class="pros tablet-cap">
+            <li class="good">Best of both: model and code side by side, no mode switching.</li>
+            <li class="good">Uses <code class="k">WindowSizeClass</code>; on phones it falls back to A or B.</li>
+            <li class="bad">Not a standalone choice — it's the large-screen layer over A/B.</li>
+          </ul>
+        </label>
+      </div>
+    </div>
+    <div class="trustbar badge-line">Recommendation: B on phones, C on ≥600dp — but pick what you want the alpha to demo first.</div>
+  </section>
+
+  <section id="screens">
+    <div class="sec-head"><h2>2 · Screens in detail</h2><span class="tag">dark theme</span></div>
+    <p class="lede">Same widgets regardless of shell choice. <b>Customize</b> is generated from the <code class="k">/* [Group] */</code> metadata in your source, not from scanning variable names.</p>
+
+    <div class="row">
+
+      <div class="col">
+        <div class="phone"><div class="notch"></div><div class="screen m-dark">
+          <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+          <div class="appbar"><span class="iconbtn">☰</span><div class="title">parametric_box.scad<small>F5 preview · up to date</small></div><span class="spacer"></span><span class="pill filled">▶ Render</span></div>
+          <div class="body">
+            <div class="viewport">
+              <div class="grid"></div>
+              <svg viewBox="0 0 300 300" width="230" height="230"><g opacity=".28"><ellipse cx="150" cy="242" rx="86" ry="20" fill="#000"/></g>
+                <polygon points="150,74 232,114 150,154 68,114" fill="#f6d94a" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+                <polygon points="232,114 232,196 150,236 150,154" fill="#c9a417" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+                <polygon points="68,114 150,154 150,236 68,196" fill="#d9b81f" stroke="#7a5c00" stroke-width="1.4" stroke-linejoin="round"/>
+              </svg>
+              <div class="vpresets"><div class="mini">⊤</div><div class="mini">◱</div><div class="mini">◲</div><div class="mini">⤢</div><div class="mini">⊙</div></div>
+              <div style="position:absolute;top:10px;right:10px;width:150px;background:var(--s-c-high);border:1px solid var(--s-outline);border-radius:14px;padding:8px;font-size:12px">
+                <div style="padding:7px 8px;border-radius:8px;background:color-mix(in srgb,var(--s-on) 9%,transparent)">◉ Preview (OpenCSG)</div>
+                <div style="padding:7px 8px">○ Render (CGAL/Manifold)</div>
+                <div style="height:1px;background:var(--s-outline);margin:5px 8px"></div>
+                <div style="padding:7px 8px">☑ Show edges</div>
+                <div style="padding:7px 8px">☑ Show axes</div>
+                <div style="padding:7px 8px">☐ Grid</div>
+                <div style="padding:7px 8px">☐ Wireframe</div>
+                <div style="height:1px;background:var(--s-outline);margin:5px 8px"></div>
+                <div style="padding:7px 8px;color:var(--s-primary)">Cornfield ▾</div>
+              </div>
+              <div class="hud">
+                <span class="kv"><span class="dot"></span><b>Ready</b></span>
+                <span class="kv">tris <b>1 248</b></span><span class="kv">verts <b>626</b></span>
+                <span class="kv">bbox <b>50×30×20</b>mm</span><span class="kv">OpenCSG <b>42ms</b></span>
+              </div>
+            </div>
+          </div>
+          <div class="bottomnav"><div class="item active"><span class="ico">◈</span>View</div><div class="item"><span class="ico">✎</span>Code</div><div class="item"><span class="ico">⚙</span>Customize</div></div>
+        </div></div>
+        <div class="caption"><b>View — shading & mode menu</b>Camera presets (top/front/right/iso/reset), preview vs full render, edge/axes/grid/wireframe toggles, OpenSCAD color schemes. HUD keeps draw stats without stealing space.</div>
+      </div>
+
+      <div class="col">
+        <div class="phone"><div class="notch"></div><div class="screen m-dark">
+          <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+          <div class="appbar"><span class="iconbtn">☰</span><div class="title">parametric_box.scad<small>saved</small></div><span class="spacer"></span><span class="pill">☑ Auto</span><span class="pill filled">▶ Render</span></div>
+          <div class="body">
+            <div class="code">
+              <div class="scroll">
+                <div class="ln"><span class="gutter">1</span><span class="src"><span class="k-c">// Parametric box</span></span></div>
+                <div class="ln"><span class="gutter">2</span><span class="src"><span class="k-meta">/* [Box dimensions] */</span></span></div>
+                <div class="ln"><span class="gutter">3</span><span class="src">box_width  <span class="k-op">=</span> <span class="k-num">50</span><span class="k-op">;</span>  <span class="k-c">// [10:5:200]</span></span></div>
+                <div class="ln"><span class="gutter">4</span><span class="src">box_depth  <span class="k-op">=</span> <span class="k-num">30</span><span class="k-op">;</span>  <span class="k-c">// [10:5:200]</span></span></div>
+                <div class="ln"><span class="gutter">5</span><span class="src">box_height <span class="k-op">=</span> <span class="k-num">20</span><span class="k-op">;</span>  <span class="k-c">// [5:5:100]</span></span></div>
+                <div class="ln"><span class="gutter">6</span><span class="src"><span class="k-meta">/* [Lid] */</span></span></div>
+                <div class="ln"><span class="gutter">7</span><span class="src">lid_style <span class="k-op">=</span> <span class="k-str">"snap"</span><span class="k-op">;</span> <span class="k-c">// [snap, screw, hinge]</span></span></div>
+                <div class="ln"><span class="gutter">8</span><span class="src">show_lid <span class="k-op">=</span> <span class="k-kw">true</span><span class="k-op">;</span></span></div>
+                <div class="ln"><span class="gutter">9</span><span class="src"></span></div>
+                <div class="ln"><span class="gutter">10</span><span class="src"><span class="k-kw">module</span> <span class="k-fn">box</span>(w, d, h) {</span></div>
+                <div class="ln"><span class="gutter">11</span><span class="src">    <span class="k-bl">difference</span>() {</span></div>
+                <div class="ln"><span class="gutter">12</span><span class="src">        <span class="k-bl">cube</span>([w, d, h], center <span class="k-op">=</span> <span class="k-kw">true</span>);</span></div>
+                <div class="ln"><span class="gutter">13</span><span class="src">        <span class="k-bl">translate</span>([<span class="k-num">0</span>, <span class="k-num">0</span>, <span class="k-num">2</span>])</span></div>
+                <div class="ln"><span class="gutter">14</span><span class="src">            <span class="k-bl">cube</span>([w<span class="k-op">-</span><span class="k-num">4</span>, d<span class="k-op">-</span><span class="k-num">4</span>, h], center <span class="k-op">=</span> <span class="k-kw">true</span>);</span></div>
+                <div class="ln"><span class="gutter">15</span><span class="src">    }</span></div>
+                <div class="ln"><span class="gutter">16</span><span class="src">}</span></div>
+                <div class="ln"><span class="gutter">17</span><span class="src"></span></div>
+                <div class="ln mark"><span class="gutter">18</span><span class="src"><span class="k-fn">box</span>(box_width, box_depth, box_height);</span></div>
+                <div class="ln"><span class="gutter">19</span><span class="src"><span class="k-kw">if</span> (show_lid) <span class="k-bl">translate</span>([<span class="k-num">0</span>,<span class="k-num">0</span>,box_height<span class="k-op">/</span><span class="k-num">2</span><span class="k-op">+</span><span class="k-num">6</span>])</span></div>
+                <div class="ln"><span class="gutter">20</span><span class="src">    <span class="k-fn">box</span>(box_width, box_depth, <span class="k-num">4</span>);</span></div>
+              </div>
+              <div class="console">
+                <div class="cl"><span class="lvl i">i</span><span>Compiling design (CSG Tree generation)...</span></div>
+                <div class="cl"><span class="lvl w">!</span><span>WARNING: variable "box_widht" unused (line 18)</span></div>
+                <div class="cl"><span class="lvl ok">✔</span><span>Render finished. 1 248 triangles · 42 ms</span></div>
+                <div class="cl"><span class="lvl e">✖</span><span>ECHO: Box 50×30×20 mm</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="bottomnav"><div class="item"><span class="ico">◈</span>View</div><div class="item active"><span class="ico">✎</span>Code</div><div class="item"><span class="ico">⚙</span>Customize</div></div>
+        </div></div>
+        <div class="caption"><b>Code — highlighting + console</b>Native <code class="k">VisualTransformation</code> (no WebView). Gutter markers for errors/warnings, current-line highlight, debounced analyze, docked console with severity levels and <code class="k">echo()</code> output.</div>
+      </div>
+
+      <div class="col">
+        <div class="phone"><div class="notch"></div><div class="screen m-dark">
+          <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+          <div class="appbar"><span class="iconbtn">☰</span><div class="title">Customize<small>2 groups · 4 params</small></div><span class="spacer"></span><span class="pill">↺ Reset</span></div>
+          <div class="body">
+            <div class="cust">
+              <div class="group">
+                <h3>Box dimensions</h3>
+                <div class="card">
+                  <div class="plabel"><span class="nm">Width</span><span class="vl">50 mm</span></div>
+                  <div class="track"><div class="fill" style="inset:0 50% 0 0"></div><div class="knob" style="left:50%"></div></div>
+                </div>
+                <div class="card">
+                  <div class="plabel"><span class="nm">Depth</span><span class="vl">30 mm</span></div>
+                  <div class="track"><div class="fill" style="inset:0 72% 0 0"></div><div class="knob" style="left:28%"></div></div>
+                </div>
+                <div class="card">
+                  <div class="plabel"><span class="nm">Height</span><span class="vl">20 mm</span></div>
+                  <div class="track"><div class="fill" style="inset:0 80% 0 0"></div><div class="knob" style="left:20%"></div></div>
+                </div>
+              </div>
+              <div class="group">
+                <h3>Lid</h3>
+                <div class="card">
+                  <div class="plabel" style="margin-bottom:8px"><span class="nm">Lid style</span><span class="vl" style="font-family:var(--sans);font-size:11px">dropdown</span></div>
+                  <div class="select"><span>snap</span><span style="color:var(--s-var)">▾</span></div>
+                </div>
+                <div class="card"><div class="swrow"><span class="nm" style="font-size:12.5px">Show lid</span><div class="sw"></div></div></div>
+              </div>
+              <div class="note" style="font-size:11.5px;padding:10px 12px;max-width:none">Hidden section (<code class="k">/* [Hidden] */</code>) is excluded from this list.</div>
+            </div>
+          </div>
+          <div class="bottomnav"><div class="item"><span class="ico">◈</span>View</div><div class="item"><span class="ico">✎</span>Code</div><div class="item active"><span class="ico">⚙</span>Customize</div></div>
+        </div></div>
+        <div class="caption"><b>Customize — generated from comments</b><code class="k">[10:5:200]</code> → slider, <code class="k">[a,b,c]</code> → dropdown, <code class="k">true</code> → switch, <code class="k">/* [Group] */</code> → section. Live re-eval, coalesced so a slider drag only renders the latest value.</div>
+      </div>
+
+      <div class="col">
+        <div class="phone"><div class="notch"></div><div class="screen m-dark">
+          <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+          <div class="appbar"><span class="iconbtn">‹</span><div class="title">Files</div><span class="spacer"></span><span class="pill filled">Open…</span></div>
+          <div class="body"><div class="list">
+            <div class="litem"><div class="thumb">◇</div><div><div class="nm">parametric_box.scad</div><div class="sub">edited 2m ago · 4 params</div></div></div>
+            <div class="litem"><div class="thumb">✿</div><div><div class="nm">voronoi_lamp.scad</div><div class="sub">yesterday · 12 params</div></div></div>
+            <div class="litem"><div class="thumb">⚙</div><div><div class="nm">herringbone_gear.scad</div><div class="sub">3 days ago · 8 params</div></div></div>
+            <div class="litem"><div class="thumb">▦</div><div><div class="nm">name_tag.scad</div><div class="sub">last week · 3 params</div></div></div>
+            <div style="padding:14px 8px 6px;font-size:11px;color:var(--s-var);text-transform:uppercase;letter-spacing:.6px">Bundled examples</div>
+            <div class="litem"><div class="thumb">▣</div><div><div class="nm">Parametric box</div><div class="sub">cube · difference · module</div></div></div>
+            <div class="litem"><div class="thumb">✦</div><div><div class="nm">Voronoi sphere</div><div class="sub">hull · polyhedron</div></div></div>
+          </div></div>
+        </div></div>
+        <div class="caption"><b>Files</b>Recents (Room) + bundled examples that double as smoke tests. SAF open, share-target for <code class="k">.scad</code>.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="theme">
+    <div class="sec-head"><h2>3 · Theme</h2><span class="tag">dark vs light</span></div>
+    <p class="lede">Dark is the default for 3D work; light/dynamic should still be coherent. Compare the same Customize screen.</p>
+    <div class="row">
+      <div class="col"><div class="phone"><div class="notch"></div><div class="screen m-dark">
+        <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+        <div class="appbar"><span class="iconbtn">☰</span><div class="title">Customize</div></div>
+        <div class="body"><div class="cust">
+          <div class="group"><h3>Box dimensions</h3>
+            <div class="card"><div class="plabel"><span class="nm">Width</span><span class="vl">50 mm</span></div><div class="track"><div class="fill" style="inset:0 50% 0 0"></div><div class="knob" style="left:50%"></div></div></div>
+            <div class="card"><div class="swrow"><span class="nm" style="font-size:12.5px">Show lid</span><div class="sw"></div></div></div>
+          </div>
+          <div class="group"><h3>Lid</h3><div class="card"><div class="select"><span>snap</span><span style="color:var(--s-var)">▾</span></div></div></div>
+        </div></div>
+      </div></div><div class="caption"><b>Dark (default)</b>surface #141218 · primary #d0bcff</div></div>
+
+      <div class="col"><div class="phone"><div class="notch"></div><div class="screen m-light">
+        <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+        <div class="appbar"><span class="iconbtn">☰</span><div class="title">Customize</div></div>
+        <div class="body"><div class="cust">
+          <div class="group"><h3>Box dimensions</h3>
+            <div class="card"><div class="plabel"><span class="nm">Width</span><span class="vl">50 mm</span></div><div class="track"><div class="fill" style="inset:0 50% 0 0"></div><div class="knob" style="left:50%"></div></div></div>
+            <div class="card"><div class="swrow"><span class="nm" style="font-size:12.5px">Show lid</span><div class="sw"></div></div></div>
+          </div>
+          <div class="group"><h3>Lid</h3><div class="card"><div class="select"><span>snap</span><span style="color:var(--s-var)">▾</span></div></div></div>
+        </div></div>
+      </div></div><div class="caption"><b>Light</b>surface #fef7ff · primary #6750a4 · dynamic color optional</div></div>
+    </div>
+  </section>
+
+  <section id="editor">
+    <div class="sec-head"><h2>4 · Editor approach</h2><span class="tag">pick one</span></div>
+    <p class="lede">How much editor do you want? Both are native; they differ in richness vs. effort.</p>
+    <div class="choices">
+      <label class="optwrap" style="max-width:420px;display:block">
+        <input type="radio" name="editor" value="Native VisualTransformation highlighting">
+        <div style="border:1px solid var(--line);border-radius:16px;padding:18px;background:var(--panel)">
+          <div class="opt-title" style="margin-top:0">Native <code class="k">VisualTransformation</code> <span class="tag">rec</span></div>
+          <ul class="pros" style="max-width:none">
+            <li class="good">Zero deps; cursor/selection/undo stay native and correct.</li>
+            <li class="good">We already need the tokenizer for the Customizer parser — reuse it.</li>
+            <li class="bad">No code folding / autocomplete out of the box (can add later).</li>
+          </ul>
+        </div>
+      </label>
+      <label class="optwrap" style="max-width:420px;display:block">
+        <input type="radio" name="editor" value="Third-party Compose code editor library">
+        <div style="border:1px solid var(--line);border-radius:16px;padding:18px;background:var(--panel)">
+          <div class="opt-title" style="margin-top:0">Compose code-editor library</div>
+          <ul class="pros" style="max-width:none">
+            <li class="good">Richest features sooner (highlighting, maybe autocomplete).</li>
+            <li class="bad">Extra dependency to vet; theming/compat risk with our M3 setup.</li>
+            <li class="bad">Another surface to debug on Waydroid.</li>
+          </ul>
+        </div>
+      </label>
+    </div>
+  </section>
+
+  <section id="native">
+    <div class="sec-head"><h2>5 · Native geometry backend</h2><span class="tag">big one</span></div>
+    <p class="lede">This decides the whole native dependency tree — and it's the biggest risk to getting an alpha onto Waydroid at all.</p>
+    <div class="choices">
+      <label class="optwrap" style="max-width:460px;display:block">
+        <input type="radio" name="native" value="Manifold backend (no CGAL/MPFR/GMP)">
+        <div style="border:1px solid var(--line);border-radius:16px;padding:18px;background:var(--panel)">
+          <div class="opt-title" style="margin-top:0">Manifold backend <span class="tag">recommended</span></div>
+          <ul class="pros" style="max-width:none">
+            <li class="good">Modern OpenSCAD default. Drops CGAL/MPFR/GMP/MPFI entirely.</li>
+            <li class="good">Far lighter, faster, and realistic to cross-compile for Android x86_64.</li>
+            <li class="good">Kills most of <code class="k">build-openscad-deps.sh</code>.</li>
+          </ul>
+        </div>
+      </label>
+      <label class="optwrap" style="max-width:460px;display:block">
+        <input type="radio" name="native" value="Legacy CGAL backend">
+        <div style="border:1px solid var(--line);border-radius:16px;padding:18px;background:var(--panel)">
+          <div class="opt-title" style="margin-top:0">Legacy CGAL backend</div>
+          <ul class="pros" style="max-width:none">
+            <li class="good">Matches older OpenSCAD exactly.</li>
+            <li class="bad">CGAL + MPFR + GMP + MPFI + Boost cross-build — days of yak-shaving.</li>
+            <li class="bad">Heavy .so set; higher chance Waydroid/GLES falls over.</li>
+          </ul>
+        </div>
+      </label>
+    </div>
+  </section>
+
+  <section id="scope">
+    <div class="sec-head"><h2>6 · Alpha scope</h2><span class="tag">pick one</span></div>
+    <p class="lede">What must the first Waydroid build actually do?</p>
+    <div class="choices">
+      <label class="optwrap" style="max-width:440px;display:block">
+        <input type="radio" name="scope" value="View + Code + basic variable list">
+        <div style="border:1px solid var(--line);border-radius:16px;padding:18px;background:var(--panel)">
+          <div class="opt-title" style="margin-top:0">View + Code + basic params <span class="tag">fastest</span></div>
+          <ul class="pros" style="max-width:none">
+            <li class="good">Proves the render loop + JNI + a usable editor on device quickly.</li>
+            <li class="bad">Customize UI is a placeholder until metadata parsing lands.</li>
+          </ul>
+        </div>
+      </label>
+      <label class="optwrap" style="max-width:440px;display:block">
+        <input type="radio" name="scope" value="Full Customizer metadata parsing">
+        <div style="border:1px solid var(--line);border-radius:16px;padding:18px;background:var(--panel)">
+          <div class="opt-title" style="margin-top:0">Full Customizer parsing <span class="tag">complete</span></div>
+          <ul class="pros" style="max-width:none">
+            <li class="good">The real differentiator — sliders/dropdowns straight from source comments.</li>
+            <li class="bad">More parser work before first device run.</li>
+          </ul>
+        </div>
+      </label>
+    </div>
+  </section>
+
+  <div class="note">
+    <b>Waydroid reality check (for the alpha):</b> it's an <code>x86_64</code> Android container, so we build only that ABI and the native geometry lib.
+    Filament needs <b>GLES 3.2</b> (or Vulkan); Waydroid's renderer (gfxstream / Mesa) may expose less, so the plan includes a
+    <b>capability probe</b> that falls back to a Compose-drawn mesh preview if the driver is too old. Also: this machine currently has
+    only <code>adb</code> — no JDK, SDK or NDK — so the first step of the alpha is toolchain setup.
+  </div>
+
+</main>
+
+<aside id="rail">
+  <h4><span class="dotr"></span> Your choices</h4>
+  <div class="railbody">
+    <div class="kv"><span>Structure</span><span id="r-ia">—</span></div>
+    <div class="kv"><span>Editor</span><span id="r-editor">—</span></div>
+    <div class="kv"><span>Backend</span><span id="r-native">—</span></div>
+    <div class="kv"><span>Alpha scope</span><span id="r-scope">—</span></div>
+  </div>
+  <div class="actions">
+    <button class="btn" id="copyBtn">Copy choices</button>
+    <button class="btn" id="minBtn">Hide</button>
+  </div>
+</aside>
+
+<script>
+  const groups = ["ia","editor","native","scope"];
+  const out = { ia:"r-ia", editor:"r-editor", native:"r-native", scope:"r-scope" };
+
+  function refresh(){
+    groups.forEach(g=>{
+      const el = document.querySelector('input[name="'+g+'"]:checked');
+      document.getElementById(out[g]).textContent = el ? el.value : "—";
+    });
+  }
+  document.querySelectorAll('input[type=radio]').forEach(r=>r.addEventListener('change',refresh));
+  refresh();
+
+  document.getElementById('copyBtn').addEventListener('click',async()=>{
+    const lines = groups.map(g=>{
+      const el=document.querySelector('input[name="'+g+'"]:checked');
+      return g.padEnd(8)+": "+(el?el.value:"(unset)");
+    }).join("\n");
+    try{ await navigator.clipboard.writeText(lines); }catch(e){}
+    const b=document.getElementById('copyBtn'); const t=b.textContent; b.textContent="Copied ✓"; setTimeout(()=>b.textContent=t,1200);
+  });
+  document.getElementById('minBtn').addEventListener('click',()=>{
+    const r=document.getElementById('rail'); r.classList.toggle('min');
+    document.getElementById('minBtn').textContent = r.classList.contains('min') ? "Show" : "Hide";
+  });
+</script>
+</body>
+</html>

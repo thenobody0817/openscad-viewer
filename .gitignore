@@ -1,0 +1,56 @@
+# Gradle
+.gradle/
+build/
+*/build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Android
+*.apk
+*.ap_
+*.aab
+*.so
+*.dex
+*.class
+*.jar
+*.aar
+# NOTE: this negation must stay *after* the blanket *.jar rule above. In
+# .gitignore the last matching pattern wins, so an exception listed earlier is
+# silently overridden and the Gradle wrapper jar never reaches the repository,
+# which breaks ./gradlew on a clean checkout (e.g. on the F-Droid build server).
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+*.keystore
+.jks
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+*.swp
+*~
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Generated files
+*.generated.*
+
+# Native build
+app/src/main/jnilibs/
+app/.cxx/
+
+# Build deps
+build_deps/
+install_deps/
+
+# Signing
+signing.properties
+keystore.properties
